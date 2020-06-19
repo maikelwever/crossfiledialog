@@ -3,6 +3,7 @@ import sys
 
 from subprocess import PIPE, Popen
 
+from filedialog import strings
 from filedialog.exceptions import FileDialogException
 
 
@@ -50,7 +51,7 @@ def run_zenity(*args, **kwargs):
     return stdout.strip()
 
 
-def open_file(title='Choose a file', filter=None):
+def open_file(title=strings.open_file, filter=None):
     zenity_kwargs = dict(title=title)
 
     if filter:
@@ -62,7 +63,7 @@ def open_file(title='Choose a file', filter=None):
     return result
 
 
-def open_multiple(title='Choose one or more files'):
+def open_multiple(title=strings.open_multiple):
     zenity_kwargs = dict(title=title)
 
     if filter:
@@ -75,7 +76,7 @@ def open_multiple(title='Choose one or more files'):
     return split_result
 
 
-def save_file(title='Enter the name of the file to save to'):
+def save_file(title=strings.save_file):
     zenity_args = ['file-selection', 'save', 'confirm-overwrite']
     zenity_kwargs = dict(title=title)
     result = run_zenity(*zenity_args, **zenity_kwargs)
@@ -84,7 +85,7 @@ def save_file(title='Enter the name of the file to save to'):
     return result
 
 
-def choose_folder(title='Choose a folder'):
+def choose_folder(title=strings.choose_folder):
     result = run_zenity('file-selection', 'directory')
     if result:
         set_last_cwd(result)

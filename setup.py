@@ -5,7 +5,7 @@ from distutils.core import setup
 
 setup(
     name='filedialog',
-    version='0.0.2',
+    version='0.0.3',
     description='A Python wrapper for opening files and folders with the native file dialog.',
     author='Maikel Wever',
     author_email='maikelwever@gmail.com',

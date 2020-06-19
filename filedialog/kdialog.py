@@ -3,6 +3,7 @@ import sys
 
 from subprocess import PIPE, Popen
 
+from filedialog import strings
 from filedialog.exceptions import FileDialogException
 
 
@@ -52,7 +53,7 @@ def run_kdialog(*args, **kwargs):
     return stdout.strip()
 
 
-def open_file(title='Choose a file', filter=None):
+def open_file(title=strings.open_file, filter=None):
     kdialog_kwargs = dict(title=title)
 
     if filter:
@@ -64,7 +65,7 @@ def open_file(title='Choose a file', filter=None):
     return result
 
 
-def open_multiple(title='Choose one or more files'):
+def open_multiple(title=strings.open_multipl):
     kdialog_kwargs = dict(title=title)
 
     if filter:
@@ -77,7 +78,7 @@ def open_multiple(title='Choose one or more files'):
     return result_list
 
 
-def save_file(title='Enter the name of the file to save to'):
+def save_file(title=strings.save_file):
     kdialog_args = ['getsavefilename']
     kdialog_kwargs = dict(title=title)
     result = run_kdialog(*kdialog_args, **kdialog_kwargs)
@@ -86,7 +87,7 @@ def save_file(title='Enter the name of the file to save to'):
     return result
 
 
-def choose_folder(title='Choose a folder'):
+def choose_folder(title=strings.choose_folder):
     result = run_kdialog('getexistingdirectory')
     if result:
         set_last_cwd(result)
