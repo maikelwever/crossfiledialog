@@ -10,11 +10,7 @@ Currently supports:
 
  - Zenity (GTK)
  - KDialog (KDE)
-
-
-Will soon support:
-
- - Windows
+ - Windows 2000 and newer (via PyWin32)
 
 
 

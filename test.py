@@ -4,9 +4,10 @@ import filedialog
 
 
 def test():
-    result = filedialog.open_file(title='choose file')
-    if result:
-        print(result)
+    #print(filedialog.open_file())
+    #print(filedialog.open_multiple())
+    print(filedialog.save_file())
+    print(filedialog.choose_folder())
 
 
 if __name__ == "__main__":

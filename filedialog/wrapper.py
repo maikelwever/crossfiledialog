@@ -26,6 +26,9 @@ if sys.platform == 'linux':
     else:
         raise NoImplementationFoundException()
 
+elif sys.platform == 'win32':
+    from filedialog.win32 import *
+
 else:
     raise NoImplementationFoundException()
 

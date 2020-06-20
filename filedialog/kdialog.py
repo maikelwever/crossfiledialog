@@ -13,6 +13,7 @@ class KDialogException(FileDialogException):
 
 last_cwd = None
 
+
 def get_preferred_cwd():
     possible_cwd = os.environ.get('FILEDIALOG_CWD', '')
     if possible_cwd:
@@ -75,7 +76,8 @@ def open_multiple(title=strings.open_multipl):
     result_list = list(map(str.strip, result.split(' ')))
     if result_list:
         set_last_cwd(result_list[0])
-    return result_list
+        return result_list
+    return []
 
 
 def save_file(title=strings.save_file):
@@ -88,7 +90,8 @@ def save_file(title=strings.save_file):
 
 
 def choose_folder(title=strings.choose_folder):
-    result = run_kdialog('getexistingdirectory')
+    kdialog_kwargs = dict(title=title)
+    result = run_kdialog('getexistingdirectory', **kdialog_kwargs)
     if result:
         set_last_cwd(result)
     return result

@@ -13,6 +13,7 @@ class ZenityException(FileDialogException):
 
 last_cwd = None
 
+
 def get_preferred_cwd():
     possible_cwd = os.environ.get('FILEDIALOG_CWD', '')
     if possible_cwd:
@@ -73,7 +74,8 @@ def open_multiple(title=strings.open_multiple):
     split_result = result.split('|')
     if split_result:
         set_last_cwd(split_result[0])
-    return split_result
+        return split_result
+    return []
 
 
 def save_file(title=strings.save_file):
@@ -86,7 +88,8 @@ def save_file(title=strings.save_file):
 
 
 def choose_folder(title=strings.choose_folder):
-    result = run_zenity('file-selection', 'directory')
+    zenity_kwargs = dict(title=title)
+    result = run_zenity('file-selection', 'directory', **zenity_kwargs)
     if result:
         set_last_cwd(result)
     return result
