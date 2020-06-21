@@ -19,7 +19,7 @@ setup(
     author_email='maikelwever@gmail.com',
     url='https://github.com/maikelwever/filedialog/',
     packages=['filedialog'],
-    requirements=requirements,
+    install_requires=requirements,
     python_requires='>=3.4',
     classifiers=[
         'Development Status :: 3 - Alpha',
