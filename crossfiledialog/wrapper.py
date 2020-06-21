@@ -1,7 +1,7 @@
 import os
 import sys
 
-from filedialog.exceptions import NoImplementationFoundException
+from crossfiledialog.exceptions import NoImplementationFoundException
 
 
 def which(command):
@@ -20,14 +20,14 @@ if sys.platform == 'linux':
     zenity_binary = which('zenity')
 
     if kdialog_binary and (probably_kde or not zenity_binary):
-        from filedialog.kdialog import *
+        from crossfiledialog.kdialog import *
     elif zenity_binary:
-        from filedialog.zenity import *
+        from crossfiledialog.zenity import *
     else:
         raise NoImplementationFoundException()
 
 elif sys.platform == 'win32':
-    from filedialog.win32 import *
+    from crossfiledialog.win32 import *
 
 else:
     raise NoImplementationFoundException()

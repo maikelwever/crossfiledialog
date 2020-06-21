@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 
-import filedialog
+import crossfiledialog
 
 
 def test():
-    #print(filedialog.open_file())
-    #print(filedialog.open_multiple())
-    print(filedialog.save_file())
-    print(filedialog.choose_folder())
+    #print(crossfiledialog.open_file())
+    #print(crossfiledialog.open_multiple())
+    print(crossfiledialog.save_file())
+    print(crossfiledialog.choose_folder())
 
 
 if __name__ == "__main__":

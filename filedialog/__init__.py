@@ -1,2 +1,0 @@
-from filedialog.wrapper import *
-

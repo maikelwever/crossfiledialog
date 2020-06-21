@@ -3,11 +3,11 @@ import sys
 
 from subprocess import PIPE, Popen
 
-from filedialog import strings
-from filedialog.exceptions import FileDialogException
+from crossfiledialog import strings
+from crossfiledialog.exceptions import FileDialogException
 
 
-class ZenityException(FileDialogException):
+class KDialogException(FileDialogException):
     pass
 
 
@@ -29,10 +29,12 @@ def set_last_cwd(cwd):
     last_cwd = os.path.dirname(cwd)
 
 
-def run_zenity(*args, **kwargs):
-    cmdlist = ['zenity']
+def run_kdialog(*args, **kwargs):
+    cmdlist = ['kdialog']
     cmdlist.extend('--{0}'.format(arg) for arg in args)
-    cmdlist.extend('--{0}={1}'.format(k, v) for k, v in kwargs.items())
+    for k, v in kwargs.items():
+        cmdlist.append('--{0}'.format(k))
+        cmdlist.append(v)
 
     extra_kwargs = dict()
     preferred_cwd = get_preferred_cwd()
@@ -43,57 +45,56 @@ def run_zenity(*args, **kwargs):
     stdout, stderr = process.communicate()
 
     if process.returncode == -1:
-        raise ZenityException("Unexpected error during zenity call")
+        raise KDialogException("Unexpected error during kdialog call")
 
+    stdout, stderr = stdout.decode(), stderr.decode()
     if stderr.strip():
         sys.stderr.write(stderr)
 
-    stdout, stderr = stdout.decode(), stderr.decode()
     return stdout.strip()
 
 
 def open_file(title=strings.open_file, filter=None):
-    zenity_kwargs = dict(title=title)
+    kdialog_kwargs = dict(title=title)
 
     if filter:
         pass
 
-    result = run_zenity('file-selection', **zenity_kwargs)
+    result = run_kdialog('getopenfilename', **kdialog_kwargs)
     if result:
         set_last_cwd(result)
     return result
 
 
-def open_multiple(title=strings.open_multiple):
-    zenity_kwargs = dict(title=title)
+def open_multiple(title=strings.open_multipl):
+    kdialog_kwargs = dict(title=title)
 
     if filter:
         pass
 
-    result = run_zenity('file-selection', 'multiple', **zenity_kwargs)
-    split_result = result.split('|')
-    if split_result:
-        set_last_cwd(split_result[0])
-        return split_result
+    result = run_kdialog('getopenfilename', 'multiple', **kdialog_kwargs)
+    result_list = list(map(str.strip, result.split(' ')))
+    if result_list:
+        set_last_cwd(result_list[0])
+        return result_list
     return []
 
 
 def save_file(title=strings.save_file):
-    zenity_args = ['file-selection', 'save', 'confirm-overwrite']
-    zenity_kwargs = dict(title=title)
-    result = run_zenity(*zenity_args, **zenity_kwargs)
+    kdialog_args = ['getsavefilename']
+    kdialog_kwargs = dict(title=title)
+    result = run_kdialog(*kdialog_args, **kdialog_kwargs)
     if result:
         set_last_cwd(result)
     return result
 
 
 def choose_folder(title=strings.choose_folder):
-    zenity_kwargs = dict(title=title)
-    result = run_zenity('file-selection', 'directory', **zenity_kwargs)
+    kdialog_kwargs = dict(title=title)
+    result = run_kdialog('getexistingdirectory', **kdialog_kwargs)
     if result:
         set_last_cwd(result)
     return result
 
 
 __all__ = ['open_file', 'open_multiple', 'save_file', 'choose_folder']
-

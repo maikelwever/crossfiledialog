@@ -1,4 +1,4 @@
-FileDialog
+CrossFileDialog
 ==========
 
 A Python wrapper for opening files and folders with the native file dialog.
@@ -17,12 +17,12 @@ Currently supports:
 Basic API usage:
 
 ```python
-import filedialog
+import crossfiledialog
 
-filename = filedialog.open_file()
-multiple_filenames = filedialog.open_multiple()
-save_filename = filedialog.save_file()
-foldername = filedialog.choose_folder()
+filename = crossfiledialog.open_file()
+multiple_filenames = crossfiledialog.open_multiple()
+save_filename = crossfiledialog.save_file()
+foldername = crossfiledialog.choose_folder()
 ```
 
 Licensed under the GNU GPL 3.0

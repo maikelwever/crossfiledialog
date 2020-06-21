@@ -1,7 +1,7 @@
 import os
 
-from filedialog import strings
-from filedialog.exceptions import NoImplementationFoundException, FileDialogException
+from crossfiledialog import strings
+from crossfiledialog.exceptions import NoImplementationFoundException, FileDialogException
 
 try:
     import pywintypes
