@@ -66,7 +66,7 @@ def open_file(title=strings.open_file, filter=None):
     return result
 
 
-def open_multiple(title=strings.open_multipl):
+def open_multiple(title=strings.open_multiple):
     kdialog_kwargs = dict(title=title)
 
     if filter:
