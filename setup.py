@@ -13,7 +13,7 @@ if sys.platform == 'win32':
 
 setup(
     name='crossfiledialog',
-    version='0.1.0',
+    version='0.1.1',
     description='A Python wrapper for opening files and folders with the native file dialog.',
     author='Maikel Wever',
     author_email='maikelwever@gmail.com',
