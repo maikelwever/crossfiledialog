@@ -45,10 +45,11 @@ def run_zenity(*args, **kwargs):
     if process.returncode == -1:
         raise ZenityException("Unexpected error during zenity call")
 
+    stdout, stderr = stdout.decode(), stderr.decode()
+
     if stderr.strip():
         sys.stderr.write(stderr)
 
-    stdout, stderr = stdout.decode(), stderr.decode()
     return stdout.strip()
 
 
