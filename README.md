@@ -1,5 +1,5 @@
 CrossFileDialog
-==========
+===============
 
 A Python wrapper for opening files and folders with the native file dialog.
 

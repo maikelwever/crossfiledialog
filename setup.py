@@ -25,6 +25,7 @@ setup(
     version='0.1.2',
     description=description,
     long_description=long_description,
+    long_description_content_type='text/markdown',
     author='Maikel Wever',
     author_email='maikelwever@gmail.com',
     url='https://github.com/maikelwever/crossfiledialog/',
