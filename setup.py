@@ -11,10 +11,20 @@ if sys.platform == 'win32':
     requirements.append('pywin32')
 
 
+description = 'A Python wrapper for opening files and folders with the native file dialog.',
+
+try:
+    long_description = open('readme.md').read()
+except:
+    long_description = description
+
+
+
 setup(
     name='crossfiledialog',
-    version='0.1.1',
-    description='A Python wrapper for opening files and folders with the native file dialog.',
+    version='0.1.2',
+    description=description,
+    long_description=long_description,
     author='Maikel Wever',
     author_email='maikelwever@gmail.com',
     url='https://github.com/maikelwever/crossfiledialog/',
