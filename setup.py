@@ -11,10 +11,10 @@ if sys.platform == 'win32':
     requirements.append('pywin32')
 
 
-description = 'A Python wrapper for opening files and folders with the native file dialog.',
+description = 'A Python wrapper for opening files and folders with the native file dialog.'
 
 try:
-    long_description = open('readme.md').read()
+    long_description = open('README.md').read()
 except:
     long_description = description
 
