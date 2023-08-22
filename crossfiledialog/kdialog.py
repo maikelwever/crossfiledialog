@@ -6,6 +6,7 @@ from subprocess import PIPE, Popen
 from crossfiledialog import strings
 from crossfiledialog.exceptions import FileDialogException
 
+# TODO: more testing
 
 class KDialogException(FileDialogException):
     pass
@@ -29,9 +30,13 @@ def set_last_cwd(cwd):
     last_cwd = os.path.dirname(cwd)
 
 
-def run_kdialog(*args, **kwargs):
+def run_kdialog(*args, **kwargs):   
     cmdlist = ['kdialog']
     cmdlist.extend('--{0}'.format(arg) for arg in args)
+
+    if "start_dir" in kwargs:
+        cmdlist.append(kwargs.pop("start_dir"))
+
     for k, v in kwargs.items():
         cmdlist.append('--{0}'.format(k))
         cmdlist.append(v)
@@ -54,8 +59,11 @@ def run_kdialog(*args, **kwargs):
     return stdout.strip()
 
 
-def open_file(title=strings.open_file, filter=None):
+def open_file(title=strings.open_file, start_dir=None, filter=None):
     kdialog_kwargs = dict(title=title)
+    
+    if start_dir:
+        kdialog_kwargs["start_dir"] = start_dir
 
     if filter:
         pass
@@ -66,8 +74,12 @@ def open_file(title=strings.open_file, filter=None):
     return result
 
 
-def open_multiple(title=strings.open_multiple):
+def open_multiple(title=strings.open_multiple, start_dir=None):
     kdialog_kwargs = dict(title=title)
+
+    if start_dir:
+        kdialog_kwargs["start_dir"] = start_dir
+
 
     if filter:
         pass
@@ -80,17 +92,25 @@ def open_multiple(title=strings.open_multiple):
     return []
 
 
-def save_file(title=strings.save_file):
+def save_file(title=strings.save_file, start_dir=None):
     kdialog_args = ['getsavefilename']
     kdialog_kwargs = dict(title=title)
+
+    if start_dir:
+        kdialog_kwargs["start_dir"] = start_dir
+
     result = run_kdialog(*kdialog_args, **kdialog_kwargs)
     if result:
         set_last_cwd(result)
     return result
 
 
-def choose_folder(title=strings.choose_folder):
+def choose_folder(title=strings.choose_folder, start_dir=None):
     kdialog_kwargs = dict(title=title)
+
+    if start_dir:
+        kdialog_kwargs["start_dir"] = start_dir
+
     result = run_kdialog('getexistingdirectory', **kdialog_kwargs)
     if result:
         set_last_cwd(result)

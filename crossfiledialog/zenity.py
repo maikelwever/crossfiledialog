@@ -53,8 +53,15 @@ def run_zenity(*args, **kwargs):
     return stdout.strip()
 
 
-def open_file(title=strings.open_file, filter=None):
+def open_file(title=strings.open_file, start_dir=None, filter=None):
     zenity_kwargs = dict(title=title)
+    
+    if start_dir:
+        # if path doesnt end with a backslash, zenity only starts in the parent directory 
+        # and selects the directory in the dialog
+        if start_dir[-1] != "/":
+            start_dir += "/"
+        zenity_kwargs["filename"] = start_dir
 
     if filter:
         pass
@@ -65,8 +72,15 @@ def open_file(title=strings.open_file, filter=None):
     return result
 
 
-def open_multiple(title=strings.open_multiple):
+def open_multiple(title=strings.open_multiple, start_dir=None):
     zenity_kwargs = dict(title=title)
+
+    if start_dir:
+        # if path doesnt end with a backslash, zenity only starts in the parent directory 
+        # and selects the directory in the dialog
+        if start_dir[-1] != "/":
+            start_dir += "/"
+        zenity_kwargs["filename"] = start_dir
 
     if filter:
         pass
@@ -79,17 +93,33 @@ def open_multiple(title=strings.open_multiple):
     return []
 
 
-def save_file(title=strings.save_file):
+def save_file(title=strings.save_file, start_dir=None):
     zenity_args = ['file-selection', 'save', 'confirm-overwrite']
     zenity_kwargs = dict(title=title)
+
+    if start_dir:
+        # if path doesnt end with a backslash, zenity only starts in the parent directory 
+        # and selects the directory in the dialog
+        if start_dir[-1] != "/":
+            start_dir += "/"
+        zenity_kwargs["filename"] = start_dir
+
     result = run_zenity(*zenity_args, **zenity_kwargs)
     if result:
         set_last_cwd(result)
     return result
 
 
-def choose_folder(title=strings.choose_folder):
+def choose_folder(title=strings.choose_folder, start_dir=None):
     zenity_kwargs = dict(title=title)
+
+    if start_dir:
+        # if path doesnt end with a backslash, zenity only starts in the parent directory 
+        # and selects the directory in the dialog
+        if start_dir[-1] != "/":
+            start_dir += "/"
+        zenity_kwargs["filename"] = start_dir
+
     result = run_zenity('file-selection', 'directory', **zenity_kwargs)
     if result:
         set_last_cwd(result)

@@ -20,6 +20,7 @@ class Win32Exception(FileDialogException):
 
 last_cwd = None
 
+# TODO: Testing
 
 def get_preferred_cwd():
     possible_cwd = os.environ.get('FILEDIALOG_CWD', '')
@@ -53,10 +54,16 @@ def error_handling_wrapper(struct, **kwargs):
         return None
 
 
-def open_file(title=strings.open_file, filter=None):
+def open_file(title=strings.open_file, start_dir=None, filter=None):
+    win_kwargs = dict(Title=title)
+
+    if start_dir:
+        win_kwargs["InitialDir"] = start_dir
+
+
     file_name = error_handling_wrapper(
         win32gui.GetOpenFileNameW,
-        Title=title
+        **win_kwargs
     )
 
     if file_name:
@@ -64,10 +71,15 @@ def open_file(title=strings.open_file, filter=None):
     return file_name
 
 
-def open_multiple(title=strings.open_multiple):
+def open_multiple(title=strings.open_multiple, start_dir=None):
+    win_kwargs = dict(Title=title)
+
+    if start_dir:
+        win_kwargs["InitialDir"] = start_dir
+
     file_names = error_handling_wrapper(
         win32gui.GetOpenFileNameW,
-        Title=title,
+        **win_kwargs,
         Flags=win32con.OFN_ALLOWMULTISELECT,
     )
 
@@ -84,10 +96,15 @@ def open_multiple(title=strings.open_multiple):
     return []
 
 
-def save_file(title=strings.save_file):
+def save_file(title=strings.save_file, start_dir=None):
+    win_kwargs = dict(Title=title)
+
+    if start_dir:
+        win_kwargs["InitialDir"] = start_dir
+
     file_name = error_handling_wrapper(
         win32gui.GetSaveFileNameW,
-        Title=title,
+        **win_kwargs,
         Flags=win32con.OFN_OVERWRITEPROMPT,
     )
 
@@ -96,10 +113,16 @@ def save_file(title=strings.save_file):
     return file_name
 
 
-def choose_folder(title=strings.choose_folder):
-    desktop_pidl = shell.SHGetFolderLocation(0, shellcon.CSIDL_DESKTOP, 0, 0)
+def choose_folder(title=strings.choose_folder, start_dir=None):
+    if start_dir:
+        start_pidl, _, _ = shell.SHParseDisplayName(start_dir, 0, 0, 0)
+    elif last_cwd:
+        start_pidl, _, _ = shell.SHParseDisplayName(last_cwd, 0, 0, 0)
+    else:
+        # default directory is the desktop
+        start_pidl = shell.SHGetFolderLocation(0, shellcon.CSIDL_DESKTOP, 0, 0)
     pidl, display_name, image_list = shell.SHBrowseForFolder(
-        win32gui.GetDesktopWindow(), desktop_pidl,
+        win32gui.GetDesktopWindow(), start_pidl,
         title, 0, None, None
     )
 
