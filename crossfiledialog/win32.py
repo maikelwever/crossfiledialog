@@ -20,7 +20,6 @@ class Win32Exception(FileDialogException):
 
 last_cwd = None
 
-# TODO: Testing
 
 def get_preferred_cwd():
     possible_cwd = os.environ.get('FILEDIALOG_CWD', '')
@@ -60,6 +59,37 @@ def open_file(title=strings.open_file, start_dir=None, filter=None):
     if start_dir:
         win_kwargs["InitialDir"] = start_dir
 
+    if filter:
+        if isinstance(filter, str):
+            # filter is a single wildcard
+            win_kwargs["Filter"] = filter + '\0' + filter + '\0'
+        elif isinstance(filter, list):
+            if isinstance(filter[0], str):
+                # filter is a list of wildcards
+                win_kwargs["Filter"] =  " ".join(filter) + '\0' + ";".join(filter) + '\0'
+            elif isinstance(filter[0], list):
+                # filter is a list of list with wildcards
+                win_kwargs["Filter"] = "".join(
+                     " ".join(f) + '\0' + ";".join(f) + '\0' for f in filter
+                )
+            else:
+                raise ValueError("Invalid filter")
+        elif isinstance(filter, dict):
+            # filter is a dictionary mapping descriptions to wildcards or lists of wildcards
+            filters = ""
+            for key, value in filter.items():
+                if isinstance(value, str):
+                    filters += "{0}\0{1}\0".format(key, value)
+                elif isinstance(value, list):
+                    filters += "{0}\0{1}\0".format(key, ';'.join(value))
+                else:
+                    raise ValueError("Invalid filter")
+
+            win_kwargs["Filter"] = filters
+
+        else:
+            raise ValueError("Invalid filter")
+
 
     file_name = error_handling_wrapper(
         win32gui.GetOpenFileNameW,
@@ -71,11 +101,43 @@ def open_file(title=strings.open_file, start_dir=None, filter=None):
     return file_name
 
 
-def open_multiple(title=strings.open_multiple, start_dir=None):
+def open_multiple(title=strings.open_multiple, start_dir=None, filter=None):
     win_kwargs = dict(Title=title)
 
     if start_dir:
         win_kwargs["InitialDir"] = start_dir
+    
+    if filter:
+        if isinstance(filter, str):
+            # filter is a single wildcard
+            win_kwargs["Filter"] = filter + '\0' + filter + '\0'
+        elif isinstance(filter, list):
+            if isinstance(filter[0], str):
+                # filter is a list of wildcards
+                win_kwargs["Filter"] =  " ".join(filter) + '\0' + ";".join(filter) + '\0'
+            elif isinstance(filter[0], list):
+                # filter is a list of list with wildcards
+                win_kwargs["Filter"] = "".join(
+                     " ".join(f) + '\0' + ";".join(f) + '\0' for f in filter
+                )
+            else:
+                raise ValueError("Invalid filter")
+        elif isinstance(filter, dict):
+            # filter is a dictionary mapping descriptions to wildcards or lists of wildcards
+            filters = ""
+            for key, value in filter.items():
+                if isinstance(value, str):
+                    filters += "{0}\0{1}\0".format(key, value)
+                elif isinstance(value, list):
+                    filters += "{0}\0{1}\0".format(key, ';'.join(value))
+                else:
+                    raise ValueError("Invalid filter")
+
+            win_kwargs["Filter"] = filters
+
+        else:
+            raise ValueError("Invalid filter")
+
 
     file_names = error_handling_wrapper(
         win32gui.GetOpenFileNameW,
@@ -115,9 +177,9 @@ def save_file(title=strings.save_file, start_dir=None):
 
 def choose_folder(title=strings.choose_folder, start_dir=None):
     if start_dir:
-        start_pidl, _, _ = shell.SHParseDisplayName(start_dir, 0, 0, 0)
+        start_pidl, _ = shell.SHParseDisplayName(start_dir, 0, None)
     elif last_cwd:
-        start_pidl, _, _ = shell.SHParseDisplayName(last_cwd, 0, 0, 0)
+        start_pidl, _ = shell.SHParseDisplayName(last_cwd, 0, None)
     else:
         # default directory is the desktop
         start_pidl = shell.SHGetFolderLocation(0, shellcon.CSIDL_DESKTOP, 0, 0)
