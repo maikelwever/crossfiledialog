@@ -90,7 +90,6 @@ def open_file(title=strings.open_file, start_dir=None, filter=None):
         else:
             raise ValueError("Invalid filter")
 
-
     file_name = error_handling_wrapper(
         win32gui.GetOpenFileNameW,
         **win_kwargs

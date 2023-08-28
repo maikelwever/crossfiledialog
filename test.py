@@ -2,6 +2,7 @@
 
 import crossfiledialog
 from crossfiledialog.win32 import open_file
+from crossfiledialog.zenity import open_file
 
 
 def test():
