@@ -20,7 +20,6 @@ class Win32Exception(FileDialogException):
 
 last_cwd = None
 
-# TODO: Testing
 
 def get_preferred_cwd():
     possible_cwd = os.environ.get('FILEDIALOG_CWD', '')
@@ -60,7 +59,6 @@ def open_file(title=strings.open_file, start_dir=None, filter=None):
     if start_dir:
         win_kwargs["InitialDir"] = start_dir
 
-
     file_name = error_handling_wrapper(
         win32gui.GetOpenFileNameW,
         **win_kwargs
@@ -71,7 +69,7 @@ def open_file(title=strings.open_file, start_dir=None, filter=None):
     return file_name
 
 
-def open_multiple(title=strings.open_multiple, start_dir=None):
+def open_multiple(title=strings.open_multiple, start_dir=None, filter=None):
     win_kwargs = dict(Title=title)
 
     if start_dir:

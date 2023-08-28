@@ -6,7 +6,6 @@ from subprocess import PIPE, Popen
 from crossfiledialog import strings
 from crossfiledialog.exceptions import FileDialogException
 
-# TODO: more testing
 
 class KDialogException(FileDialogException):
     pass
@@ -30,12 +29,15 @@ def set_last_cwd(cwd):
     last_cwd = os.path.dirname(cwd)
 
 
-def run_kdialog(*args, **kwargs):   
+def run_kdialog(*args, **kwargs):
     cmdlist = ['kdialog']
     cmdlist.extend('--{0}'.format(arg) for arg in args)
 
     if "start_dir" in kwargs:
         cmdlist.append(kwargs.pop("start_dir"))
+
+    if "filter" in kwargs:
+        cmdlist.append(kwargs.pop("filter"))
 
     for k, v in kwargs.items():
         cmdlist.append('--{0}'.format(k))
@@ -61,12 +63,41 @@ def run_kdialog(*args, **kwargs):
 
 def open_file(title=strings.open_file, start_dir=None, filter=None):
     kdialog_kwargs = dict(title=title)
-    
+
     if start_dir:
         kdialog_kwargs["start_dir"] = start_dir
 
     if filter:
-        pass
+        if isinstance(filter, str):
+            # filter is a single wildcard
+            kdialog_kwargs["filter"] = filter
+        elif isinstance(filter, list):
+            if isinstance(filter[0], str):
+                # filter is a list of wildcards
+                kdialog_kwargs["filter"] = " ".join(filter)
+            elif isinstance(filter[0], list):
+                # filter is a list of list with wildcards
+                kdialog_kwargs["filter"] = " | ".join(
+                    " ".join(f) for f in filter
+                )
+            else:
+                raise ValueError("Invalid filter")
+        elif isinstance(filter, dict):
+            # filter is a dictionary mapping descriptions to wildcards or lists of wildcards
+            filters = []
+            for key, value in filter.items():
+                if isinstance(value, str):
+                    filters.append(f"{key} ({value})")
+                elif isinstance(value, list):
+                    filters.append(f"{key} ({' '.join(value)})")
+                else:
+                    raise ValueError("Invalid filter")
+
+            kdialog_kwargs["filter"] = " | ".join(
+                filters
+            )
+        else:
+            raise ValueError("Invalid filter")
 
     result = run_kdialog('getopenfilename', **kdialog_kwargs)
     if result:
@@ -80,9 +111,37 @@ def open_multiple(title=strings.open_multiple, start_dir=None):
     if start_dir:
         kdialog_kwargs["start_dir"] = start_dir
 
-
     if filter:
-        pass
+        if isinstance(filter, str):
+            # filter is a single wildcard
+            kdialog_kwargs["filter"] = filter
+        elif isinstance(filter, list):
+            if isinstance(filter[0], str):
+                # filter is a list of wildcards
+                kdialog_kwargs["filter"] = " ".join(filter)
+            elif isinstance(filter[0], list):
+                # filter is a list of list with wildcards
+                kdialog_kwargs["filter"] = " | ".join(
+                    " ".join(f) for f in filter
+                )
+            else:
+                raise ValueError("Invalid filter")
+        elif isinstance(filter, dict):
+            # filter is a dictionary mapping descriptions to wildcards or lists of wildcards
+            filters = []
+            for key, value in filter.items():
+                if isinstance(value, str):
+                    filters.append(f"{key} ({value})")
+                elif isinstance(value, list):
+                    filters.append(f"{key} ({' '.join(value)})")
+                else:
+                    raise ValueError("Invalid filter")
+
+            kdialog_kwargs["filter"] = " | ".join(
+                filters
+            )
+        else:
+            raise ValueError("Invalid filter")
 
     result = run_kdialog('getopenfilename', 'multiple', **kdialog_kwargs)
     result_list = list(map(str.strip, result.split(' ')))
