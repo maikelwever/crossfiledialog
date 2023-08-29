@@ -1,14 +1,11 @@
 #!/usr/bin/env python3
 
 import crossfiledialog
-from crossfiledialog.win32 import open_file
-from crossfiledialog.zenity import open_file
 
 
 def test():
-    # TODO: Windows Testing
-    print(open_file(
-        start_dir="c:\\Users\\sebas\\OneDrive\\Documents\\Python\\crossfiledialog",
+    print(crossfiledialog.open_file(
+        start_dir="~",
         filter={"PDF-Files": "*.pdf", "Python Project": ["*.py", "*.md"]}
         # filter=[["*.py", "*.txt"], ["*.png", "*.jpg"]]
         # filter=["*.py", "*.md"]
