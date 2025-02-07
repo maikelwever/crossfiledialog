@@ -22,7 +22,7 @@ except:
 
 setup(
     name='crossfiledialog',
-    version='0.2.0',
+    version='1.0.0',
     description=description,
     long_description=long_description,
     long_description_content_type='text/markdown',
@@ -33,9 +33,9 @@ setup(
     install_requires=requirements,
     python_requires='>=3.4',
     classifiers=[
-        'Development Status :: 3 - Alpha',
+        'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Developers',
-        'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
+        'License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)',
         'Programming Language :: Python :: 3',
         'Environment :: X11 Applications :: GTK',
         'Environment :: X11 Applications :: KDE',

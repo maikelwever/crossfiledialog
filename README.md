@@ -91,4 +91,7 @@ Returns:
  - str: The selected folder's path.
 
 ## Licence
-Licensed under the GNU GPL 3.0
+
+This software is licensed under the GNU LGPL 3.0 Only. See the LICENSE file for details.
+
+SPDX-License-Identifier: LGPL-3.0-only
