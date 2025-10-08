@@ -29,9 +29,11 @@ if sys.platform == 'linux':
 elif sys.platform == 'win32':
     from crossfiledialog.win32 import *
 
+elif sys.platform == "darwin":
+    from crossfiledialog.osascript import *
+
 else:
     raise NoImplementationFoundException()
 
 
 __all__ = ['open_file', 'open_multiple', 'save_file', 'choose_folder']
-
