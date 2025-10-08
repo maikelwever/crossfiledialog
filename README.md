@@ -11,6 +11,7 @@ Currently supports:
  - Zenity (GTK)
  - KDialog (KDE)
  - Windows 2000 and newer (via PyWin32)
+ - osascript (macOS)
 
 Basic API usage:
 
@@ -35,7 +36,7 @@ Parameters:
  - filter (str, list, dict, optional) — The filter for file types to display. It can be either:
    - a single wildcard (e.g.: `"*.py"`, all files are displayed ending .py)
    - a list of wildcards (e.g.: `["*.py" "*.md"]`, all files are displayed ending either .py or .md)
-   - a list of list optional one or more wildcards (e.g.: `[["*.py", "*.md"], ["*.txt"]]`, 
+   - a list of list optional one or more wildcards (e.g.: `[["*.py", "*.md"], ["*.txt"]]`,
  user can switch between (.py, .md) and (.txt))
    - a dictionary mapping descriptions to wildcards (e.g.: `{"PDF-Files": "*.pdf", "Python Project": ["\*.py", "*.md"]}`)
 
@@ -55,7 +56,7 @@ Parameters:
  - filter (str, list, dict, optional) — The filter for file types to display. It can be either:
    - a single wildcard (e.g.: `"*.py"`, all files are displayed ending .py)
    - a list of wildcards (e.g.: `["*.py" "*.md"]`, all files are displayed ending either .py or .md)
-   - a list of list optional one or more wildcards (e.g.: `[["*.py", "*.md"], ["*.txt"]]`, 
+   - a list of list optional one or more wildcards (e.g.: `[["*.py", "*.md"], ["*.txt"]]`,
  user can switch between (.py, .md) and (.txt))
    - a dictionary mapping descriptions to wildcards (e.g.: `{"PDF-Files": "*.pdf", "Python Project": ["\*.py", "*.md"]}`)
 
