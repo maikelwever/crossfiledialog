@@ -1,0 +1,36 @@
+[project]
+name = "crossfiledialog"
+version = "1.3.0"
+description = "A Python wrapper for opening files and folders with the native file dialog."
+license = "LGPL-3.0-only"
+readme = "README.md"
+requires-python = ">=3.4"
+
+authors = [
+    { name = "Maikel Wever", email = "maikelwever@gmail.com" },
+]
+
+classifiers=[
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Environment :: X11 Applications :: GTK",
+    "Environment :: X11 Applications :: KDE",
+    "Environment :: Win32 (MS Windows)",
+    "Operating System :: OS Independent",
+    "Operating System :: Microsoft",
+    "Operating System :: POSIX :: Linux",
+    "Topic :: Desktop Environment :: File Managers",
+]
+
+
+[project.urls]
+Homepage = "https://github.com/maikelwever/crossfiledialog/"
+Repository = "https://github.com/maikelwever/crossfiledialog.git"
+
+[build-system]
+requires = ["setuptools>=73"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["crossfiledialog"]
