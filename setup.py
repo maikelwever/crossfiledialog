@@ -1,14 +1,6 @@
 #!/usr/bin/env python3
 
-import sys
-
 from distutils.core import setup
-
-
-requirements = []
-
-if sys.platform == 'win32':
-    requirements.append('pywin32')
 
 
 description = 'A Python wrapper for opening files and folders with the native file dialog.'
@@ -30,7 +22,7 @@ setup(
     author_email='maikelwever@gmail.com',
     url='https://github.com/maikelwever/crossfiledialog/',
     packages=['crossfiledialog'],
-    install_requires=requirements,
+    install_requires=[],
     python_requires='>=3.4',
     classifiers=[
         'Development Status :: 5 - Production/Stable',

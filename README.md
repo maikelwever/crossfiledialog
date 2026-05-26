@@ -10,7 +10,7 @@ Currently supports:
 
  - Zenity (GTK)
  - KDialog (KDE)
- - Windows 2000 and newer (via PyWin32)
+ - Windows Vista and newer
  - osascript (macOS)
 
 Basic API usage:

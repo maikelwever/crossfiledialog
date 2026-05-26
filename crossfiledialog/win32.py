@@ -262,6 +262,101 @@ def _show_and_get_single(dialog: _ComObj) -> str:
 
 
 # ---------------------------------------------------------------------------
+# DPI awareness
+# ---------------------------------------------------------------------------
+# Without DPI awareness, Windows renders this process's dialogs at 96 DPI and
+# then bitmap-stretches them to the display DPI, which produces blurry text
+# on high-DPI screens. Applying awareness around Show() makes the Common Item
+# Dialog render natively at the target DPI.
+
+# DPI_AWARENESS_CONTEXT pseudo-handles, used by SetThreadDpiAwarenessContext
+# (Win10 1607+) and SetProcessDpiAwarenessContext (Win10 1703+).
+_DPI_PER_MONITOR_AWARE_V2 = -4
+_DPI_PER_MONITOR_AWARE = -3
+_DPI_SYSTEM_AWARE = -2
+
+# PROCESS_DPI_AWARENESS values for shcore!SetProcessDpiAwareness (Win8.1+).
+_PROCESS_PER_MONITOR_DPI_AWARE = 2
+_PROCESS_SYSTEM_DPI_AWARE = 1
+
+_process_dpi_initialized = False
+
+
+def _set_process_dpi_aware_once():
+    """Apply process-wide DPI awareness exactly once. Fallback for pre-Win10 1607."""
+    global _process_dpi_initialized
+    if _process_dpi_initialized:
+        return
+    _process_dpi_initialized = True
+
+    user32 = ctypes.windll.user32
+
+    # Win10 1703+: per-monitor v2 > per-monitor > system, in that order.
+    fn = getattr(user32, "SetProcessDpiAwarenessContext", None)
+    if fn is not None:
+        fn.restype = ctypes.c_int
+        fn.argtypes = [ctypes.c_void_p]
+        for ctx in (_DPI_PER_MONITOR_AWARE_V2, _DPI_PER_MONITOR_AWARE, _DPI_SYSTEM_AWARE):
+            if fn(ctypes.c_void_p(ctx)):
+                return
+
+    # Win8.1+: shcore!SetProcessDpiAwareness. shcore.dll is absent on Win7/Vista.
+    try:
+        shcore = ctypes.windll.shcore
+    except OSError:
+        shcore = None
+    fn = getattr(shcore, "SetProcessDpiAwareness", None) if shcore else None
+    if fn is not None:
+        fn.restype = ctypes.c_int
+        fn.argtypes = [ctypes.c_int]
+        for level in (_PROCESS_PER_MONITOR_DPI_AWARE, _PROCESS_SYSTEM_DPI_AWARE):
+            if fn(level) == S_OK:
+                return
+
+    # Vista+: system-DPI awareness only.
+    fn = getattr(user32, "SetProcessDPIAware", None)
+    if fn is not None:
+        fn()
+
+
+class _DpiAware:
+    """Make dialog windows DPI-aware for the duration of a `with` block.
+
+    On Win10 1607+, the change is scoped to the current thread and reverted on
+    exit, leaving the host app's DPI mode untouched. On older Windows (down to
+    Vista), falls back to a one-time process-wide change.
+    """
+
+    def __init__(self):
+        self._prev = None
+        self._set_thread = None
+
+    def __enter__(self):
+        user32 = ctypes.windll.user32
+        fn = getattr(user32, "SetThreadDpiAwarenessContext", None)
+        if fn is None:
+            _set_process_dpi_aware_once()
+            return self
+
+        fn.restype = ctypes.c_void_p
+        fn.argtypes = [ctypes.c_void_p]
+        for ctx in (_DPI_PER_MONITOR_AWARE_V2, _DPI_PER_MONITOR_AWARE, _DPI_SYSTEM_AWARE):
+            prev = fn(ctypes.c_void_p(ctx))
+            if prev:  # non-NULL pseudo-handle = previous context, success.
+                self._prev = prev
+                self._set_thread = fn
+                return self
+
+        # Thread-scoped attempt failed for every level; fall back to process-wide.
+        _set_process_dpi_aware_once()
+        return self
+
+    def __exit__(self, exc_type, exc, tb):
+        if self._set_thread is not None and self._prev is not None:
+            self._set_thread(ctypes.c_void_p(self._prev))
+
+
+# ---------------------------------------------------------------------------
 # Public API
 # ---------------------------------------------------------------------------
 
@@ -281,12 +376,13 @@ def open_file(title=strings.open_file, start_dir=None, filter=None):
     ole32.CoInitializeEx(None, COINIT_APARTMENTTHREADED)
     path = None
     try:
-        dialog = _co_create(CLSID_FileOpenDialog, IID_IFileOpenDialog)
-        try:
-            _configure_dialog(dialog, title, start_dir, filter, FOS_FILEMUSTEXIST)
-            path = _show_and_get_single(dialog)
-        finally:
-            dialog.release()
+        with _DpiAware():
+            dialog = _co_create(CLSID_FileOpenDialog, IID_IFileOpenDialog)
+            try:
+                _configure_dialog(dialog, title, start_dir, filter, FOS_FILEMUSTEXIST)
+                path = _show_and_get_single(dialog)
+            finally:
+                dialog.release()
     finally:
         ole32.CoUninitialize()
 
@@ -310,63 +406,64 @@ def open_multiple(title=strings.open_multiple, start_dir=None, filter=None) -> l
     ole32.CoInitializeEx(None, COINIT_APARTMENTTHREADED)
     paths = []
     try:
-        dialog = _co_create(CLSID_FileOpenDialog, IID_IFileOpenDialog)
-        try:
-            _configure_dialog(
-                dialog,
-                title,
-                start_dir,
-                filter,
-                FOS_FILEMUSTEXIST | FOS_ALLOWMULTISELECT,
-            )
-
-            hr = dialog.call(_VT_SHOW, ctypes.c_int, ctypes.c_void_p, None)
-            if hr != S_OK:
-                return []
-
-            # IFileOpenDialog::GetResults -> IShellItemArray
-            arr_ptr = ctypes.c_void_p()
-            hr = dialog.call(
-                _VT_GETRESULTS,
-                ctypes.c_int,
-                ctypes.POINTER(ctypes.c_void_p),
-                ctypes.byref(arr_ptr),
-            )
-            if hr != S_OK or not arr_ptr:
-                return []
-
-            arr = _ComObj(arr_ptr)
+        with _DpiAware():
+            dialog = _co_create(CLSID_FileOpenDialog, IID_IFileOpenDialog)
             try:
-                count = ctypes.c_uint(0)
-                arr.call(
-                    _VT_ARR_GETCOUNT,
-                    ctypes.c_int,
-                    ctypes.POINTER(ctypes.c_uint),
-                    ctypes.byref(count),
+                _configure_dialog(
+                    dialog,
+                    title,
+                    start_dir,
+                    filter,
+                    FOS_FILEMUSTEXIST | FOS_ALLOWMULTISELECT,
                 )
-                for i in range(count.value):
-                    item_ptr = ctypes.c_void_p()
-                    hr = arr.call(
-                        _VT_ARR_GETITEM,
+
+                hr = dialog.call(_VT_SHOW, ctypes.c_int, ctypes.c_void_p, None)
+                if hr != S_OK:
+                    return []
+
+                # IFileOpenDialog::GetResults -> IShellItemArray
+                arr_ptr = ctypes.c_void_p()
+                hr = dialog.call(
+                    _VT_GETRESULTS,
+                    ctypes.c_int,
+                    ctypes.POINTER(ctypes.c_void_p),
+                    ctypes.byref(arr_ptr),
+                )
+                if hr != S_OK or not arr_ptr:
+                    return []
+
+                arr = _ComObj(arr_ptr)
+                try:
+                    count = ctypes.c_uint(0)
+                    arr.call(
+                        _VT_ARR_GETCOUNT,
                         ctypes.c_int,
-                        ctypes.c_uint,
-                        i,
-                        ctypes.POINTER(ctypes.c_void_p),
-                        ctypes.byref(item_ptr),
+                        ctypes.POINTER(ctypes.c_uint),
+                        ctypes.byref(count),
                     )
-                    if hr != S_OK or not item_ptr:
-                        continue
-                    item = _ComObj(item_ptr)
-                    try:
-                        p = _shell_item_path(item)
-                        if p:
-                            paths.append(p)
-                    finally:
-                        item.release()
+                    for i in range(count.value):
+                        item_ptr = ctypes.c_void_p()
+                        hr = arr.call(
+                            _VT_ARR_GETITEM,
+                            ctypes.c_int,
+                            ctypes.c_uint,
+                            i,
+                            ctypes.POINTER(ctypes.c_void_p),
+                            ctypes.byref(item_ptr),
+                        )
+                        if hr != S_OK or not item_ptr:
+                            continue
+                        item = _ComObj(item_ptr)
+                        try:
+                            p = _shell_item_path(item)
+                            if p:
+                                paths.append(p)
+                        finally:
+                            item.release()
+                finally:
+                    arr.release()
             finally:
-                arr.release()
-        finally:
-            dialog.release()
+                dialog.release()
     finally:
         ole32.CoUninitialize()
 
@@ -402,14 +499,15 @@ def save_file(title=strings.save_file, start_dir=None, filter=None, default_name
     ole32.CoInitializeEx(None, COINIT_APARTMENTTHREADED)
     path = None
     try:
-        dialog = _co_create(CLSID_FileSaveDialog, IID_IFileSaveDialog)
-        try:
-            _configure_dialog(dialog, title, start_dir, filter, FOS_OVERWRITEPROMPT)
-            if prefill_name:
-                dialog.call(_VT_SETFILENAME, ctypes.c_int, ctypes.c_wchar_p, prefill_name)
-            path = _show_and_get_single(dialog)
-        finally:
-            dialog.release()
+        with _DpiAware():
+            dialog = _co_create(CLSID_FileSaveDialog, IID_IFileSaveDialog)
+            try:
+                _configure_dialog(dialog, title, start_dir, filter, FOS_OVERWRITEPROMPT)
+                if prefill_name:
+                    dialog.call(_VT_SETFILENAME, ctypes.c_int, ctypes.c_wchar_p, prefill_name)
+                path = _show_and_get_single(dialog)
+            finally:
+                dialog.release()
     finally:
         ole32.CoUninitialize()
  
@@ -432,14 +530,15 @@ def choose_folder(title: str = "Select folder", start_dir: str = None) -> str:
     ole32.CoInitializeEx(None, COINIT_APARTMENTTHREADED)
     path = None
     try:
-        dialog = _co_create(CLSID_FileOpenDialog, IID_IFileOpenDialog)
-        try:
-            _configure_dialog(
-                dialog, title, start_dir, None, FOS_PICKFOLDERS | FOS_FILEMUSTEXIST
-            )
-            path = _show_and_get_single(dialog)
-        finally:
-            dialog.release()
+        with _DpiAware():
+            dialog = _co_create(CLSID_FileOpenDialog, IID_IFileOpenDialog)
+            try:
+                _configure_dialog(
+                    dialog, title, start_dir, None, FOS_PICKFOLDERS | FOS_FILEMUSTEXIST
+                )
+                path = _show_and_get_single(dialog)
+            finally:
+                dialog.release()
     finally:
         ole32.CoUninitialize()
 
