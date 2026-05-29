@@ -240,7 +240,7 @@ def _configure_dialog(dialog: _ComObj, title, start_dir, filter, extra_options: 
 
 def _show_and_get_single(dialog: _ComObj) -> str:
     # Show the dialog and return the single selected path, or None on cancel.
-    hr = dialog.call(_VT_SHOW, ctypes.c_int, ctypes.c_void_p, None)
+    hr = dialog.call(_VT_SHOW, ctypes.c_int, ctypes.c_void_p, _dialog_owner())
     if hr != S_OK:
         return None
 
@@ -357,6 +357,29 @@ class _DpiAware:
 
 
 # ---------------------------------------------------------------------------
+# Dialog owner
+# ---------------------------------------------------------------------------
+# Giving the dialog a real owner is the most reliable solution: the window
+# manager guarantees an owned dialog renders above its owner, regardless of
+# topmost state. We use GetForegroundWindow() at the moment Show() is about
+# to be called, which in practice is the host app window (the user just
+# clicked something in it). Cross-process owners are valid.
+
+_u32 = ctypes.windll.user32
+
+_u32.GetForegroundWindow.argtypes = []
+_u32.GetForegroundWindow.restype = ctypes.c_void_p
+
+
+def _dialog_owner() -> ctypes.c_void_p:
+    """HWND to pass as hwndOwner to IModalWindow::Show — keeps the dialog
+    above the host app window. Returns NULL (== None to ctypes) if no
+    foreground window exists, in which case Show() falls back to ownerless.
+    """
+    return _u32.GetForegroundWindow()
+
+
+# ---------------------------------------------------------------------------
 # Public API
 # ---------------------------------------------------------------------------
 
@@ -417,7 +440,7 @@ def open_multiple(title=strings.open_multiple, start_dir=None, filter=None) -> l
                     FOS_FILEMUSTEXIST | FOS_ALLOWMULTISELECT,
                 )
 
-                hr = dialog.call(_VT_SHOW, ctypes.c_int, ctypes.c_void_p, None)
+                hr = dialog.call(_VT_SHOW, ctypes.c_int, ctypes.c_void_p, _dialog_owner())
                 if hr != S_OK:
                     return []
 
